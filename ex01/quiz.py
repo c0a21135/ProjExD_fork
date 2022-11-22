@@ -1,10 +1,6 @@
 from random import randint
 from datetime import datetime
 
-def main():
-    nq,na=shutudai()
-    kaitou(nq,na)
-
 def shutudai():
     questions=[("サザエの旦那の名前は？",("マスオ","ますお")),
     ("カツオの妹の名前は？",("ワカメ","わかめ")),

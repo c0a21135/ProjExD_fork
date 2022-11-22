@@ -26,17 +26,19 @@ def questions(astr,lstr,nstr):
         lstr=lstr.replace(u_lstr,"",1)
     return "正解です。",True
 
-    
-
-
 if __name__=="__main__":
     st=datetime.now()
     anum,lnum=randint(6,10),randint(1,5)
     flag=False
+    ix=0
+    mx=7
     while flag==False:
         astr,lstr,nstr=mkstr(anum,lnum)
         message,result=questions(astr,lstr,nstr)
         print(message)
         flag=result
+        ix+=1
+        if ix==mx:
+            flag==True
     en=datetime.now()
     print(f"実行時間：{en-st}")
