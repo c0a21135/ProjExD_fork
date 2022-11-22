@@ -1,4 +1,5 @@
 from random import randint
+from datetime import datetime
 
 def main():
     nq,na=shutudai()
@@ -13,11 +14,14 @@ def shutudai():
 
 def kaitou(nq,na):
     print(nq)
+    st=datetime.now()
     ua=input()
+    en=datetime.now()
     if ua in na:
         print("正解！！！")
     else:
         print("出直してこい")
+    print(f"所要時間:{en-st}")
 if __name__=="__main__":
     nq,na=shutudai()
     kaitou(nq,na)
