@@ -21,16 +21,16 @@ def questions(astr,lstr,nstr):
         return "不正解です。またチャレンジしてください。",False
     for i in range(lnum):
         u_lstr=input(f"{i+1}つ目の文字を入力してください")
-        if u_lstr not in lstr or u_lstr=="":
+        if u_lstr not in lstr or u_lstr==""or len(u_lstr)>1:
             return "不正解です。またチャレンジしてください。",False
-        lstr.replace(u_lstr,"")
+        lstr=lstr.replace(u_lstr,"",1)
     return "正解です。",True
 
     
 
 
 if __name__=="__main__":
-    anum,lnum=7,2
+    anum,lnum=randint(6,10),randint(1,5)
     flag=False
     while flag==False:
         astr,lstr,nstr=mkstr(anum,lnum)
