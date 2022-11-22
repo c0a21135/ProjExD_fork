@@ -1,5 +1,5 @@
 from random import randint
-
+from datetime import datetime
 def mkstr(anum,lnum):
     astr=""
     lstr=""
@@ -13,9 +13,9 @@ def mkstr(anum,lnum):
     return astr,lstr,nstr
 
 def questions(astr,lstr,nstr):
-    print("対象文字\n"+astr)
-    print("欠損文字\n"+lstr)
-    print("表示文字\n"+nstr)
+    print("対象文字:\n"+astr)
+    print("欠損文字:\n"+lstr)
+    print("表示文字:\n"+nstr)
     u_lnum=input("欠損文字はいくつあるでしょうか:")
     if str(lnum)!=u_lnum:
         return "不正解です。またチャレンジしてください。",False
@@ -30,6 +30,7 @@ def questions(astr,lstr,nstr):
 
 
 if __name__=="__main__":
+    st=datetime.now()
     anum,lnum=randint(6,10),randint(1,5)
     flag=False
     while flag==False:
@@ -37,3 +38,5 @@ if __name__=="__main__":
         message,result=questions(astr,lstr,nstr)
         print(message)
         flag=result
+    en=datetime.now()
+    print(f"実行時間：{en-st}")
