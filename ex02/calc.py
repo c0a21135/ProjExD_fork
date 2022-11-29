@@ -39,6 +39,8 @@ def check_ope(ope):
     elif ope=="x!":
         fact()
         return False
+    elif ope=="1/x":
+        return False
     return True
 
 
