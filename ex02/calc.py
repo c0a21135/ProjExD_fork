@@ -3,21 +3,21 @@ import tkinter.messagebox as tkm
 
 
 def button_click(num):
-    # if num!="=":
-    #     calc()
-    # else:
-    input_text.insert(tk.END,str(num))
+    if num=="=":
+        calc()
+    else:
+        input_text.insert(tk.END,str(num))
     tkm.showinfo("押すな",f"{num}のボタンが押されました。")
 
-# def calc():
-#     formula=input_text.get()
-#     formula=formula.split("+")
-#     input_text.delete()
-#     try:
-#         formula=[int(i) for i in formula]
-#         input_text.insert(tk.END,str(sum(formula)))
-#     except Exception:
-#         input_text.insert(tk.END,"エラー")
+def calc():
+    formula=input_text.get()
+    formula=formula.split("+")
+    input_text.delete(0,tk.END)
+    try:
+        formula=[int(i) for i in formula]
+        input_text.insert(tk.END,str(sum(formula)))
+    except Exception:
+        input_text.insert(tk.END,"エラー")
 
 
 
