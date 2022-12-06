@@ -116,15 +116,15 @@ if __name__=="__main__": #メイン関数
     canvas.pack()
     show_maze(canvas,maze) #迷路を作成
     koukaton_lst=[tk.PhotoImage(file=f"./fig/0.png"), #こうかとんの画像のリスト
-    tk.PhotoImage(file=f"./fig/1.png"),
-    tk.PhotoImage(file=f"./fig/2.png"),
-    tk.PhotoImage(file=f"./fig/3.png"),
-    tk.PhotoImage(file=f"./fig/4.png"),
-    tk.PhotoImage(file=f"./fig/5.png"),
-    tk.PhotoImage(file=f"./fig/6.png"),
-    tk.PhotoImage(file=f"./fig/7.png"),
-    tk.PhotoImage(file=f"./fig/8.png"),
-    tk.PhotoImage(file=f"./fig/9.png")]
+                  tk.PhotoImage(file=f"./fig/1.png"),
+                  tk.PhotoImage(file=f"./fig/2.png"),
+                  tk.PhotoImage(file=f"./fig/3.png"),
+                  tk.PhotoImage(file=f"./fig/4.png"),
+                  tk.PhotoImage(file=f"./fig/5.png"),
+                  tk.PhotoImage(file=f"./fig/6.png"),
+                  tk.PhotoImage(file=f"./fig/7.png"),
+                  tk.PhotoImage(file=f"./fig/8.png"),
+                  tk.PhotoImage(file=f"./fig/9.png")]
     canvas.create_image(mx*100+50,my*100+50,image=koukaton_lst[koukaton],tag="koukaton") #画像の配置
     root.bind("<KeyPress>",key_down) #キー押下時の操作
     root.bind("<KeyRelease>",key_up) #キー開放時の操作
