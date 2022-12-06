@@ -1,4 +1,5 @@
 import tkinter as tk
+from maze_maker import make_maze,show_maze
 
 
 def key_down(event):
@@ -25,14 +26,16 @@ def main_proc():
 
 
 if __name__=="__main__":
-    cx=300
-    cy=400
+    cx=150
+    cy=150
     key=""
+    maze=make_maze(15,9)
 
     root=tk.Tk()
-    root.title("maze")
+    root.title("迷えるこうかとん")
     canvas=tk.Canvas(root,width=1500,height=900,bg="black")
     canvas.pack()
+    show_maze(canvas,maze)
     koukaton=tk.PhotoImage(file="./fig/0.png")
     canvas.create_image(cx,cy,image=koukaton,tag="koukaton_1")
     root.bind("<KeyPress>",key_down)
