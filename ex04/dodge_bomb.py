@@ -10,7 +10,7 @@ def main(): #ゲーム全体の動作
     vx, vy=1, 1 #爆弾のx方向、y方向の増減の初期値
     tori_num=0 #現在のこうかとんの画像番号
     add_time=10000 #爆弾を追加する時間
-    bomb_num=3 #爆弾の数の初期値
+    bomb_num=5 #爆弾の数の初期値
     tori_sfc_lst=[0 for _ in range(10)] #こうかとんの画像を格納するリスト
     bomb_sfc_lst=[0 for _ in range(bomb_num)] #爆弾を格納するリストの設定
 
