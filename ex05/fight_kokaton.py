@@ -69,7 +69,7 @@ class Bomb: #爆弾
         screen_obj.scrn_sfc.blit(self.sfc, self.rct)
 
 
-class Bomb_List(list): #爆弾を格納するlistオブジェクト
+class BombList(list): #爆弾を格納するlistオブジェクト
 
     def __init__(self,bomb_num, color, radius, velocity, screen_obj):
         super().__init__(self) #listオブジェクトのイニシャライザを実行
@@ -126,7 +126,7 @@ class Shot(Bomb): #こうかとんが発射する弾(Bombオブジェクトを�
         self.rct.center = tori_rct.x, tori_rct.y #初期位置をこうかとんの位置に変更
 
 
-class Shot_List(list): #こうかとんが発射した弾を格納するlistオブジェクト
+class ShotList(list): #こうかとんが発射した弾を格納するlistオブジェクト
 
     def __init__(self, color, radius, screen_obj):
         super().__init__(self) #listオブジェクトのイニシャライザを参照
@@ -183,9 +183,9 @@ def main(): #ゲーム全体の動作
     tori_obj = tori_obj_lst[tori_num] #tori_numに設定されたこうかとんを現在のこうかとんとして呼び出し
     tori_obj.blit(screen) #こうかとんを描画
     #爆弾を設定
-    bomb_obj_lst=Bomb_List(BOMB_NUM, (255, 0, 0), 10, (VX, VY), screen)
+    bomb_obj_lst=BombList(BOMB_NUM, (255, 0, 0), 10, (VX, VY), screen)
     #こうかとんが発射する弾の設定
-    shot_obj_lst = Shot_List((0, 0, 255), 10, screen)
+    shot_obj_lst = ShotList((0, 0, 255), 10, screen)
 
     #逐次処理
     while True:
