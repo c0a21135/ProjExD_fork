@@ -18,29 +18,29 @@
 * こうかとんの弾発射機能
 ### プログラム内解説
 * Screenクラス：描画に使用するスクリーンを設定するクラス
-- イニシャライザ：スクリーンのsurfaceオブジェクト、rectオブジェクトを作成
-- blit：スクリーンを描画
+    - イニシャライザ：スクリーンのsurfaceオブジェクト、rectオブジェクトを作成
+    - blit：スクリーンを描画
 * Birdクラス：こうかとんの設定をするクラス
-- イニシャライザ：こうかとんのsurfaceオブジェクト、rectオブジェクトを作成
-- blit：こうかとんを描画
-- update：爆弾の位置を更新
-- take_over：他のこうかとんから位置を引き継ぎ
+    - イニシャライザ：こうかとんのsurfaceオブジェクト、rectオブジェクトを作成
+    - blit：こうかとんを描画
+    - update：爆弾の位置を更新
+    - take_over：他のこうかとんから位置を引き継ぎ
 * Bombクラス：爆弾を設定するクラス
-- イニシャライザ：スクリーンのsurfaceオブジェクト、rectオブジェクトを作成
-- blit：爆弾を描画
-- update：爆弾の位置を更新
+    - イニシャライザ：スクリーンのsurfaceオブジェクト、rectオブジェクトを作成
+    - blit：爆弾を描画
+    - update：爆弾の位置を更新
 * BombListクラス：Bombクラスを格納するlistオブジェクト
-- blit：要素の爆弾のblitを実行
-- update：要素の爆弾のupdateを実行
-- plus_bomb：爆弾を作成し、自身に追加
-- colliderect：引数のrectオブジェクトと要素の爆弾が衝突してるか判断
+    - blit：要素の爆弾のblitを実行
+    - update：要素の爆弾のupdateを実行
+    - plus_bomb：爆弾を作成し、自身に追加
+    - colliderect：引数のrectオブジェクトと要素の爆弾が衝突してるか判断
 * Shotクラス：こうかとんの発射する弾を設定するクラス
-- イニシャライザ：弾のsurfaceオブジェクト、rectオブジェクトを作成
-- blit：弾を描画
-- update：弾の位置を更新
+    - イニシャライザ：弾のsurfaceオブジェクト、rectオブジェクトを作成
+    - blit：弾を描画
+    - update：弾の位置を更新
 * ShotListクラス：こうかとんの発射する弾を格納するlistオブジェクト
-- blit：要素の弾のblitを実行
-- update：要素の弾のupdateを実行
-- plus_shot：弾を作成し、自身に追加
+    - blit：要素の弾のblitを実行
+    - update：要素の弾のupdateを実行
+    - plus_shot：弾を作成し、自身に追加
 * main関数：ゲーム全体の処理を対応
 * check_bound関数：第一引数のrectオブジェクトが第二引数のrectオブジェクトの外にあるか判断
