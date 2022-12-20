@@ -30,6 +30,7 @@
     - blit：爆弾を描画
     - update：爆弾の位置を更新
 * BombListクラス：Bombクラスを格納するlistオブジェクト
+    - イニシャライザ：引数の個数分爆弾のオブジェクトを作成し、自身に追加
     - blit：要素の爆弾のblitを実行
     - update：要素の爆弾のupdateを実行
     - plus_bomb：爆弾を作成し、自身に追加
