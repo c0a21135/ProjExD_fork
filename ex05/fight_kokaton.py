@@ -21,7 +21,10 @@ class Screen: # スクリーン
 
 class Bird: #こうかとん
 
-    key_delta = {pg.K_UP:(0, -1), pg.K_DOWN:(0, 1), pg.K_LEFT:(-1, 0), pg.K_RIGHT:(1, 0)} #押下キーによるこうかとんの進行方向のdict
+    key_delta = {pg.K_UP:(0, -1),
+                 pg.K_DOWN:(0, 1),
+                 pg.K_LEFT:(-1, 0),
+                 pg.K_RIGHT:(1, 0)} #押下キーによるこうかとんの進行方向のdict
 
     def __init__(self, img_path, magnification, x_y):
         self.tori_sfc = pg.image.load(img_path) #こうかとんの画像を取得
@@ -107,7 +110,10 @@ class BombList(list): #爆弾を格納するlistオブジェクト
 
 class Shot(Bomb): #こうかとんが発射する弾(Bombオブジェクトを継承)
 
-    key_delta = {pg.K_UP:(0, -1), pg.K_DOWN:(0, 1), pg.K_LEFT:(-1, 0), pg.K_RIGHT:(1, 0)} #押下キーによる弾の進行方向のdict
+    key_delta = {pg.K_UP:(0, -1),
+                 pg.K_DOWN:(0, 1),
+                 pg.K_LEFT:(-1, 0),
+                 pg.K_RIGHT:(1, 0)} #押下キーによる弾の進行方向のdict
 
     def __init__(self, color, radius, screen_obj, tori_rct):
 
