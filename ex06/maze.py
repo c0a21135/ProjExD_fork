@@ -8,6 +8,16 @@ import pygame as pg
 from maze_maker import make_maze
 
 
+#定数の設定
+WIDTH = 1500 #ウィンドウの横幅
+HEIGHT = 900 #ウィンドウの縦幅
+MAZE_X, MAZE_Y = 25, 25 #迷宮のマスの数
+WINDOW_BLOCK = 20 #1マスの大きさ
+NUM_ENEMY = 20 #敵の数
+MAIN_FLOOR_LEN = 3 # フロアの数（階層数） <児玉>
+SUB_FLOOR_LEN = 5 # 穴の数 <児玉>
+
+
 class Screen: # スクリーン
 
     def __init__(self, title, width_height): 
@@ -18,15 +28,19 @@ class Screen: # スクリーン
 
 class Maze:#迷宮
 
-    def __init__(self, yoko, tate, block):
-        self.maze_map=make_maze(yoko, tate) #迷宮のリストの作成(0=道, 1=壁)
+    def __init__(self, yoko, tate, block, sub, n):
+        self.maze_map=make_maze(yoko, tate, sub, n) #迷宮のリストの作成(0=道, 1=壁)
         for x, ele_list in enumerate(self.maze_map):
             for y, ele_num in enumerate(ele_list):
                 if ele_num == 1: #要素が1であったら
-                    self.maze_map[x][y] = Wall(block, x, y) #要素をWallオブジェクトに変更
+                    self.maze_map[x][y] = Wall(block, x, y, n) #要素をWallオブジェクトに変更
                 else:
-                    self.maze_map[x][y] = Road(block,x, y) #1以外(0)ならば要素をRoadオブジェクトに変更
-        Goal(block,self) #Goalオブジェクトを設置
+                    self.maze_map[x][y] = Road(block,x, y, n) #1以外(0)ならば要素をRoadオブジェクトに変更
+        Goal(block,self) #Goalオブジェクトを設置 <児玉>
+        if n == 0: # メインフロアだったら <児玉>
+            for i in range(SUB_FLOOR_LEN): # 規定数Holeオブジェクトを設置 <児玉>
+                Hole(block, self)
+
 
     def show_maze(self, player_obj, block, screen_obj, enemy_lst): #迷宮の表示
         screen_obj.sfc.fill((0,0,0)) #ウィンドウを黒で塗りつぶし
@@ -51,10 +65,12 @@ class Maze:#迷宮
 
 class Wall: #壁
 
-    def __init__(self, block, x, y):
+    def __init__(self, block, x, y, n):
+        if n == 0: color = "#b0ca71" # フロアによって色（画像）を変更 <児玉>
+        else: color = "#765c47"
         self.x, self.y = x, y #x座標とy座標を設定
         self.sfc = pg.Surface((block, block)) #Surfaceオブジェクトを作成
-        pg.draw.rect(self.sfc, (144, 144, 144), (0, 0, block, block)) #Surfaceオブジェクトに灰色の正方形を描き込む
+        pg.draw.rect(self.sfc, color, (0, 0, block, block)) #Surfaceオブジェクトに灰色の正方形を描き込む
         self.rct = self.sfc.get_rect() #rectオブジェクトの取得
     
     def blit(self, screen_obj):
@@ -63,15 +79,44 @@ class Wall: #壁
 
 class Road:#道
 
-    def __init__(self, block, x, y):
+    def __init__(self, block, x, y, n):
+        if n == 0: color = "#fff1cf" # フロアによって色（画像）を変更 <児玉>
+        else: color = "#3f312b"
         self.x, self.y = x, y #x座標とy座標を設定
         self.sfc = pg.Surface((block, block)) #Surfaceオブジェクトを作成
-        pg.draw.rect(self.sfc, (255, 255, 255), (0, 0, block, block)) #Surfaceオブジェクトに白色の正方形を描き込む
+        pg.draw.rect(self.sfc, color, (0, 0, block, block)) #Surfaceオブジェクトに白色の正方形を描き込む
         self.rct = self.sfc.get_rect() #rectオブジェクトの取得
     
     def blit(self, screen_obj):
         screen_obj.sfc.blit(self.sfc, self.rct)#Screenオブジェクトに道を描画
 
+
+class Goal: #ゴール
+    color = (255, 0, 255) # 色を固定（子クラスHoleと色が異なるため__init__の外） <児玉>
+
+    def __init__(self,block,maze_obj):
+        while True:#ループ処理(初期座標の決定)
+            self.x = random.randint(0,len(maze_obj.maze_map)-1) #x座標ランダムに設定
+            self.y = random.randint(0,len(maze_obj.maze_map[0])-1) #y座標ランダムに設定
+            if isinstance(maze_obj.maze_map[self.x][self.y],Road): #初期座標が道であり
+                if self.x != 1 and self.y != 1: #初期座標がプレイヤーの初期座標で無ければ
+                    maze_obj.maze_map[self.x][self.y]=self #道をゴールに変更
+                    break #ループを脱出
+        self.sfc = pg.Surface((block, block)) #1マス分のSurfaceオブジェクトを作成
+        pg.draw.rect(self.sfc, self.color, (0, 0, block, block)) #Surfaceオブジェクトに紫色の正方形を描画
+        self.rct = self.sfc.get_rect() #rectオブジェクトの取得
+    
+    def blit(self, screen_obj):
+        screen_obj.sfc.blit(self.sfc, self.rct) #ゴールの描画
+
+class Hole(Goal):
+    color = "#765c47" # 色を固定（親クラスGoalと色が異なるため__init__の外） <児玉>
+
+    def __init__(self, block, maze_obj):
+        super().__init__(block, maze_obj) # オーバーライド <児玉>
+
+    def blit(self, screen_obj):
+        screen_obj.sfc.blit(self.sfc, self.rct) # 穴の描画 <児玉>
 
 
 class Player: #プレイヤー
@@ -100,18 +145,26 @@ class Player: #プレイヤー
             if pressed[delta]:
                 x += __class__.key_delta[delta][0]
                 y += __class__.key_delta[delta][1]#押下キーに対応して座標を変更
-        if isinstance(maze_obj.maze_map[x][y], Goal):#移動先のマスがゴールだったら
+        if isinstance(maze_obj.maze_map[x][y], Hole):# 移動先のマスがゴールだったら  <児玉>
+            self.hold_x, self.hold_y = x, y #座標を保持しておく <児玉>
+            self.x, self.y = x, y #座標の更新を確定 <児玉>
+            maze_obj.show_maze(self, block, screen_obj, enemy_lst) #迷宮の描画(プレイヤーではなく迷宮を動かすことによって移動させるため)  <児玉>
+            self.blit(screen_obj) #プレイヤーを描画  <児玉>
+            pg.display.update() #画面の更新  <児玉>
+            maze_obj.maze_map[x][y] = Road(block, x, y, 0)  # 穴をRoadオブジェクトに変更（一度入った穴を消滅させるため）<児玉>
+            return "hole" # play_game()に戻る
+        elif isinstance(maze_obj.maze_map[x][y], Goal):#移動先のマスがゴールだったら
             self.x, self.y = x, y #座標の更新を確定
             maze_obj.show_maze(self, block, screen_obj, enemy_lst) #迷宮の描画(プレイヤーではなく迷宮を動かすことによって移動させるため)
             self.blit(screen_obj) #プレイヤーを描画
             pg.display.update() #画面の更新
             time.sleep(1) #ゴールしたことが確認できるための休止期間(1秒)
-            pg.quit() #pygemeの終了
-            sys.exit() #プログラムの終了
-        if isinstance(maze_obj.maze_map[x][y], Road): #移動先が道だったら
+            return "goal" # play_game()に戻る <児玉>
+        elif isinstance(maze_obj.maze_map[x][y], Road): #移動先が道だったら
             self.x, self.y = x, y #座標の更新を確定
             for enemy in enemy_lst:
                 enemy.update_xy(maze_obj) #全ての敵を移動させる
+
         #移動先がゴール又は道でなかった場合、座標の変更を破棄する
     
     def colliderect(self, obj_lst,screen_obj): #衝突判定
@@ -149,53 +202,56 @@ class Enemy: #敵オブジェクト
                 break #ループを脱出
     
 
-class Goal: #ゴール
+def play_game(floor, maze, screen, floor_type):
+    # mount_mazeに現在のいるエリアを格納する <児玉>
+    if floor_type == "main":
+        mount_maze = maze[0]
+        sub_maze = maze[1:]
+    if floor_type == "sub":
+        mount_maze = maze
 
-    def __init__(self,block,maze_obj):
-        while True:#ループ処理(初期座標の決定)
-            self.x = random.randint(0,len(maze_obj.maze_map)-1) #x座標ランダムに設定
-            self.y = random.randint(0,len(maze_obj.maze_map[0])-1) #y座標ランダムに設定
-            if isinstance(maze_obj.maze_map[self.x][self.y],Road): #初期座標が道であり
-                if self.x != 1 and self.y != 1: #初期座標がプレイヤーの初期座標で無ければ
-                    maze_obj.maze_map[self.x][self.y]=self #道をゴールに変更
-                    break #ループを脱出
-        self.sfc = pg.Surface((block, block)) #1マス分のSurfaceオブジェクトを作成
-        pg.draw.rect(self.sfc, (255, 0, 255), (0, 0, block, block)) #Surfaceオブジェクトに紫色の正方形を描画
-        self.rct = self.sfc.get_rect() #rectオブジェクトの取得
-    
-    def blit(self, screen_obj):
-        screen_obj.sfc.blit(self.sfc, self.rct) #ゴールの描画
-
-
-def main(): #メイン関数
-
-    #定数の設定
-    WIDTH = 1600 #ウィンドウの横幅
-    HEIGHT = 900 #ウィンドウの縦幅
-    MAZE_X, MAZE_Y = 100, 100 #迷宮のマスの数
-    WINDOW_BLOCK = 20 #1マスの大きさ
-    NUM_ENEMY = 200 #敵の数
-
-    #オブジェクトの作成
-    screen = Screen("test", (WIDTH, HEIGHT)) #スクリーンの作成
-    maze = Maze(MAZE_X, MAZE_Y, WINDOW_BLOCK) #迷宮の作成
     player = Player(WINDOW_BLOCK,screen) #プレイヤーの作成
-    enemies = [Enemy(WINDOW_BLOCK,maze,player) for _ in range(NUM_ENEMY)] #敵を格納したlistオブジェクトの作成
-    maze.show_maze(player, WINDOW_BLOCK, screen, enemies) #迷宮・敵の描画
+    enemies = [Enemy(WINDOW_BLOCK,mount_maze,player) for _ in range(NUM_ENEMY)] #敵を格納したlistオブジェクトの作成
+    mount_maze.show_maze(player, WINDOW_BLOCK, screen, enemies) #迷宮・敵の描画
     player.blit(screen) #プレイヤーの描画
 
     #ループ処理
     while True:
         pg.display.update() #画面の更新
-        maze.show_maze(player,WINDOW_BLOCK,screen,enemies) #迷宮・敵の描画
+        mount_maze.show_maze(player,WINDOW_BLOCK,screen,enemies) #迷宮・敵の描画
         player.blit(screen) #プレイヤーの描画
         for event in pg.event.get(): #イベントの取得
             if event.type == pg.QUIT: #ウィンドウの×ボタンが押されたら
-                return #main関数の脱出(ゲームの終了)
+                pg.quit() #pygemeの終了
+                sys.exit() #プログラムの終了
             if event.type == pg.KEYDOWN: #キーが押されたら
-                player.update_xy(maze, screen, enemies, WINDOW_BLOCK) #プレイヤー・敵の座標の更新
+                pos = player.update_xy(mount_maze, screen, enemies, WINDOW_BLOCK) #プレイヤー・敵の座標の更新
+                if pos == "goal": return # ゴールしていれば → メインフロアならmain()に戻る、地下フロアなら一つ上のplay_game()に戻る <児玉>
+                if pos == "hole": # 穴を踏んでいれば <児玉>
+                    play_game(floor, sub_maze.pop(), screen, "sub") # 地下のマップを1つpop()し、floor_typeをsubに切り替え、play_gameを再帰呼び出しする <児玉>
         if player.colliderect(enemies,screen): #敵とプレイヤーが衝突していれば
-            return #main関数の脱出(ゲームの終了)
+            pg.quit() #pygemeの終了 <児玉>
+            sys.exit() #プログラムの終了 <児玉>
+
+
+def main(): #メイン関数
+
+    #オブジェクトの作成
+    screen = Screen("test", (WIDTH, HEIGHT)) #スクリーンの作成
+
+    # 迷宮の作成
+    # メインフロア1つと地下フロア規定数を保持する各階層を格納した2次元リストを作成 <児玉>
+    # メイン/地下 は Mazeクラス内で作り分け
+    '''下図イメージ
+    [[ 1-メイン, 1-地下1 , 1-地下2, 1-地下3 ],
+     [ 2-メイン, 2-地下1 , 2-地下2, 2-地下3 ],
+     [ 3-メイン, 3-地下1 , 3-地下2, 3-地下3 ]]    '''    
+    all_maze_lst = [[Maze(MAZE_X,MAZE_Y,WINDOW_BLOCK, SUB_FLOOR_LEN, i) for i in range(SUB_FLOOR_LEN+1)] for j in range(MAIN_FLOOR_LEN)]
+
+    # フロア（階層）を回す <児玉>
+    for i, floor_maze_lst in enumerate(all_maze_lst):
+        floor = i+1 # 階層を進める　 <児玉>
+        play_game(floor, floor_maze_lst, screen, "main") # play_gameを呼び出し、プレイを開始する　 <児玉>
 
 
 if __name__ == "__main__":
