@@ -1,6 +1,6 @@
 import random
 
-def make_maze(yoko, tate):
+def make_maze(yoko, tate,sub,n):
     XP = [ 0, 1, 0, -1]
     YP = [-1, 0, 1,  0]
 
