@@ -11,11 +11,11 @@ from maze_maker import make_maze
 #定数の設定
 WIDTH = 1500 #ウィンドウの横幅
 HEIGHT = 900 #ウィンドウの縦幅
-MAZE_X, MAZE_Y = 25, 25 #迷宮のマスの数
-WINDOW_BLOCK = 20 #1マスの大きさ
+MAZE_X, MAZE_Y = 50, 50 #迷宮のマスの数
+WINDOW_BLOCK = 60 #1マスの大きさ
 NUM_ENEMY = 20 #敵の数
 MAIN_FLOOR_LEN = 3 # フロアの数（階層数） <児玉>
-SUB_FLOOR_LEN = 5 # 穴の数 <児玉>
+SUB_FLOOR_LEN = 10 # 穴の数 <児玉>
 
 
 class Screen: # スクリーン
@@ -110,13 +110,18 @@ class Goal: #ゴール
         screen_obj.sfc.blit(self.sfc, self.rct) #ゴールの描画
 
 class Hole(Goal):
-    color = "#765c47" # 色を固定（親クラスGoalと色が異なるため__init__の外） <児玉>
+    color = "#fff1cf" # 色を固定（親クラスGoalと色が異なるため__init__の外） <児玉>
+    af_color = "#765c47"  # 変更後の色 <矢島>
 
     def __init__(self, block, maze_obj):
+        self.block = block #インスタンス変数に1マスの大きさを保持(色の変更に用いるため) <矢島>
         super().__init__(block, maze_obj) # オーバーライド <児玉>
 
     def blit(self, screen_obj):
         screen_obj.sfc.blit(self.sfc, self.rct) # 穴の描画 <児玉>
+    
+    def chenge_color(self): #色の変更 <矢島>
+        pg.draw.rect(self.sfc, self.af_color, (0 ,0, self.block,self.block)) #Surfaceオブジェクトを新しい色の正方形で塗りつぶす <矢島>
 
 
 class Player: #プレイヤー
@@ -148,9 +153,11 @@ class Player: #プレイヤー
         if isinstance(maze_obj.maze_map[x][y], Hole):# 移動先のマスがゴールだったら  <児玉>
             self.hold_x, self.hold_y = x, y #座標を保持しておく <児玉>
             self.x, self.y = x, y #座標の更新を確定 <児玉>
+            maze_obj.maze_map[x][y].chenge_color()
             maze_obj.show_maze(self, block, screen_obj, enemy_lst) #迷宮の描画(プレイヤーではなく迷宮を動かすことによって移動させるため)  <児玉>
             self.blit(screen_obj) #プレイヤーを描画  <児玉>
             pg.display.update() #画面の更新  <児玉>
+            time.sleep(1)
             maze_obj.maze_map[x][y] = Road(block, x, y, 0)  # 穴をRoadオブジェクトに変更（一度入った穴を消滅させるため）<児玉>
             return "hole" # play_game()に戻る
         elif isinstance(maze_obj.maze_map[x][y], Goal):#移動先のマスがゴールだったら
