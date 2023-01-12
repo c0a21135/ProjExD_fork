@@ -15,7 +15,7 @@ MAZE_X, MAZE_Y = 50, 50 #迷宮のマスの数
 WINDOW_BLOCK = 60 #1マスの大きさ
 NUM_ENEMY = 20 #敵の数
 MAIN_FLOOR_LEN = 3 # フロアの数（階層数） <児玉>
-SUB_FLOOR_LEN = 10 # 穴の数 <児玉>
+SUB_FLOOR_LEN = 50 # 穴の数 <児玉>
 
 
 class Screen: # スクリーン
@@ -204,7 +204,7 @@ class Enemy: #敵オブジェクト
         while True: #ループ処理(座標の移動)
             next_x = self.x+random.randint(-1,1) #x座標を現在から-1から+1の間で変更
             next_y = self.y+random.randint(-1,1) #y座標を現在から-1から+1の間で変更
-            if isinstance(maze_obj.maze_map[next_x][next_y],Road): #移動先が道であったら
+            if (not isinstance(maze_obj.maze_map[next_x][next_y],Wall)) and (type(maze_obj.maze_map[next_x][next_y]) != Goal): #移動先が壁でもゴールでも無ければ
                 self.x, self.y = next_x, next_y #変更を確定
                 break #ループを脱出
     
