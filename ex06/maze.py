@@ -16,7 +16,7 @@ WINDOW_BLOCK = 60 #1マスの大きさ <矢島>
 NUM_ENEMY = 50 #敵の数 <矢島>
 MAIN_FLOOR_LEN = 3 # フロアの数（階層数） <児玉>
 HOOL_NUM= 100 # 穴の数 <児玉>
-
+COMMAND = ["[A]ttack", "[I]tems", "[M]agic", "[R]un"] #Playerのコマンドのリスト <貞野>
 
 class Screen: # スクリーン <矢島>
 
@@ -181,12 +181,13 @@ class Player: #プレイヤー <矢島> <改訂 児玉>
         #移動先がゴール又は道でなかった場合、座標の変更を破棄する
     
     def colliderect(self, obj_lst,screen_obj): #衝突判定 <矢島>
-        for obj in obj_lst: #list内の全てのオブジェクトに対して <矢島>
+        for i,obj in enumerate(obj_lst): #list内の全てのオブジェクトに対して <矢島> <追加　貞野>
             if self.rct.colliderect(obj.rct): #プレイヤーが衝突していれば <矢島>
                 obj.blit(screen_obj) #衝突相手を描画 <矢島>
+                obj_lst.pop(i) #衝突相手が戦闘画面後に残らないようにリストから除く <貞野>
                 pg.display.update() #画面の更新 <矢島>
                 time.sleep(1) #確認用の待機時間 <矢島>
-                return True #bool値を返す(ゲームを終了させる) <矢島>
+                return True #bool値を返す <矢島>
     
 
 class Enemy: #敵オブジェクト <矢島>
@@ -213,9 +214,150 @@ class Enemy: #敵オブジェクト <矢島>
             if (not isinstance(maze_obj.maze_map[next_x][next_y],Wall)) and (type(maze_obj.maze_map[next_x][next_y]) != Goal): #移動先が壁でもゴールでも無ければ (Road or Hole) <矢島>
                 self.x, self.y = next_x, next_y #変更を確定 <矢島>
                 break #ループを脱出 <矢島>
-    
 
-def play_game(maze, screen): #<児玉> <改訂 矢島>
+
+class Battle: #バトル画面オブジェクト <貞野>
+    enemy_img = [pg.image.load("fig/dragon.png"), pg.image.load("fig/ha-pi.png")]
+    def __init__(self):
+        self.btlbg_sfc = pg.image.load("fig/btlbg.png") #背景画像のSurface <貞野>
+        self.effect_attack_sfc = pg.image.load("fig/zangeki.png")  #斬撃エフェクトのSurface <貞野>
+        self.effect_magic_sfc = pg.image.load("fig/magic.png") #魔法エフェクトのSurface <貞野>
+        self.enemy_sfc = random.choices(Battle.enemy_img, k = 1, weights=[1,3]) #敵エネミーの選択、enemy_imgに画像を追加し、weights=の数値設定に値を追加すれば、出現率の変更が多少可能
+        self.enemy_sfc = self.enemy_sfc[0] #敵エネミー（ドラゴン）のSurface <貞野>
+        self.enemy_sfc = pg.transform.scale(self.enemy_sfc,  (900, 675))#画像の大きさを(900, 675)に変更 <貞野>
+        self.enemy_rct = self.enemy_sfc.get_rect() #rectオブジェクトの取得 <貞野>
+        self.enemy_rct.center = (WIDTH/2-self.enemy_sfc.get_width()/2, HEIGHT-self.enemy_sfc.get_height()) #エネミーをウィンドウの中心に <貞野>
+        self.player_dmg = 0 #プレイヤーの与えるダメージ　Playerにレベルを追加して攻撃能力が変わる場合はPlayerなどに管理させてください <貞野>
+        self.enemy_dmg = 0 #エネミーの与えるダメージ　Enemyにレベルを追加して攻撃能力が変わる場合はEnemyなどに管理させてください <貞野>
+        self.enemy_step = 0 #エネルギーが攻撃をする際に画像位置を動かす為の変数 Enemyよって動く幅が変わる場合はEnemyオブジェクトに管理させてください <貞野>
+        self.enemy_blink = 0 #エネミーが攻撃を受ける際の点滅を表現するための変数 Enemyなどによって変化させる場合Enemyオブジェクトに管理させてください <貞野>
+        self.dmg_effect = 0 #プレイヤーがダメージを受けた際に背景を動かすための変数 Enemyなどによって背景が動かすのを変更する場合Enemyオブジェクトに管理させてください <貞野>
+        self.enemy_life = random.randint(1500,3000) #エネミーの体力 Enemyなどによって体力が変わる場合はEnemyオブジェクトに管理させてください <貞野>
+        self.turn = 0 #プレイヤーやエネミーがどの行動を行うか判定に使う変数 <貞野>
+        self.tmr = 0 #時間経過ごとにどの描画をするか判定に使う変数 <貞野>
+        self.message = [""]*10 #Playerと敵エネミーの行動リスト <貞野>
+        self.font = pg.font.Font(None, 30) #fontの描画に使うSurface <貞野>
+
+    def blit(self,screen_obj, sfc ,x_y): #<貞野>
+        screen_obj.sfc.blit(sfc, x_y) #戦闘画面の描画 <貞野>
+
+    def set_message(self,msg): #<貞野>
+        #引数：Playerもしくは敵エネミーの行動
+        for i,message in enumerate(self.message):
+            #messageが空なら追加しそこで終了 <貞野>
+            if message == "":
+                self.message[i] = msg
+                return
+        #空でない場合、上に一つメッセージをずらし、最後に新しいメッサージを追加 <貞野>
+        for i in range(len(self.message)-1):
+            self.message[i] = self.message[i+1]
+        self.message[-1] = msg
+
+    def draw_text(self,screen_obj,txt, x, y, color): #<貞野>
+        #渡された文字列から新しいFontSurfaceを作成 <貞野>
+        """
+        txt :描画する文字列 <貞野>
+        x   :横の描画開始位置 <貞野>
+        y   :縦の描画開始位置 <貞野>
+        color :色 <貞野>
+        """
+        txt_font = self.font.render(txt, True, color) #引数：txtでcolorの色の文字列のSurfaceを作成 <貞野>
+        __class__.blit(self, screen_obj, txt_font, [x, y]) #文字列を描画 <貞野>
+
+    def draw_battle(self,screen_obj):
+        #プレイヤーの攻撃やエネミーの攻撃による描画 <貞野>
+        #背景を揺らす為の変数 <貞野>
+        bx = 0
+        by = 0
+
+        if self.dmg_effect > 0: #敵エネミーの行動をする際に背景を上下させるために描画位置を更新 <貞野>
+            #dmg_effectの数値分の処理回数だけ背景の位置を変更する <貞野>
+            self.dmg_effect -= 1
+            bx = random.randint(-20, 20)
+            by = random.randint(-10, 10)
+        __class__.blit(self, screen_obj,self.btlbg_sfc,[bx,by]) #背景画像を描画 <貞野>
+        if self.enemy_blink%2 == 0: #偶然の場合はエネミーの画像を描画 <貞野>
+            __class__.blit(self, screen_obj, self.enemy_sfc, [self.enemy_rct.centerx, self.enemy_rct.centery+self.enemy_step]) #エネミーの画像を描画 <貞野>
+        if self.enemy_blink > 0: #奇数の場合はカウントだけ更新し、攻撃を受けた際に点滅しているように描画 <貞野>
+            self.enemy_blink -= 1
+        for i, message in enumerate(self.message): #プレイヤーと敵エネミーの行動を位置をずらしながら描画　<貞野>
+            __class__.draw_text(self,screen_obj,message, WIDTH-200, 100+i*50, (255,255,255))
+
+    def battle_command(self,screen_obj): #プレイヤーのコマンドを位置をずらしながら描画　<貞野>
+        for i,command in enumerate(COMMAND):
+            __class__.draw_text(self,screen_obj, command, 20, HEIGHT/2+60*i,  (255,255,255))
+
+    def battle(self,screen_obj): #<貞野>
+        __class__.draw_battle(self,screen_obj) #戦闘画面の描画と更新 <貞野>
+        self.tmr += 1 #それぞれの行動ごとの描画するタイミングを更新
+        key = pg.key.get_pressed() #押下キーを取得 <貞野>
+
+        if self.turn == 0: # 戦闘開始
+            if self.tmr == 1: __class__.set_message(self,"Encounter!") #描画するメッセージを追加 <貞野>
+            if self.tmr == 6:
+                self.turn = 1 #プレイヤー入力待ちに変更 <貞野>
+                self.tmr = 0 #時間経過をリセット <貞野>
+
+        elif self.turn == 1: # プレイヤー入力待ち <貞野>
+            if self.tmr == 1: __class__.set_message(self,"Your turn.") #描画するメッセージを追加 <貞野>
+            __class__.battle_command(self,screen_obj) #コマンドを描画 <貞野>
+            if key[pg.K_a] == True or key[pg.K_SPACE] == True: #aキーかSPACEキーが押された場合、斬撃エフェクトでプレイヤーが行動<貞野>
+                self.turn = 2 #プレイヤーの行動に変更 <貞野>
+                self.tmr = 0 #時間経過をリセット <貞野>
+            if key[pg.K_m] == True: #mキーが押された場合、魔法エフェクトでプレイヤーが行動<貞野>
+                self.turn = 3 #プレイヤーの行動に変更 <貞野>
+                self.tmr = 0 #時間経過をリセット <貞野>
+
+        elif self.turn == 2 or self.turn == 3: # プレイヤーの行動 <貞野>
+            if self.tmr == 1: __class__.set_message(self,"You attack!") #描画するメッセージを追加 <貞野>
+            if 2 <= self.tmr <= 6: #プレイヤーの攻撃の描画 <貞野>
+                # プレイヤーの入力がaキーかSPACEキーの時、斬撃をエネミーの位置に描画 時間経過ごとに画像の位置を変更し、攻撃を表現 <貞野>
+                if self.turn == 2: __class__.blit(self, screen_obj, self.effect_attack_sfc, [self.enemy_rct.centerx*2-self.tmr*(self.enemy_rct.centery/6), self.enemy_rct.centery+self.tmr*(self.enemy_rct.centery/6)])
+                # プレイヤーの入力がmキーの時、魔法をエネミーの位置に描画 時間経過ごとに画像の位置を変更し、攻撃を表現 <貞野>
+                if self.turn ==3: __class__.blit(self, screen_obj, self.effect_magic_sfc, [self.enemy_rct.centerx, self.tmr*20])
+            if self.tmr == 7: #エネミーが攻撃を受けた際の描画 <貞野>
+                self.enemy_blink = 5 #エネミーの点滅を追加 <貞野>
+                if self.turn == 2:
+                    # プレイヤーの入力がaキーかSPACEキーの時、700-900の間でプレイヤーの攻撃ダメージを更新　<貞野>
+                    self.player_dmg = random.randint(700,900) #700-900の間で数値を更新 プレイヤーのステータスによって攻撃ダメージを変更する場合、書き換えてください <貞野>
+                    __class__.set_message(self,f"{self.player_dmg} damage!") #描画するメッセージを追加 <貞野>
+                if self.turn ==3:
+                    # プレイヤーの入力がmキーの時、400-1200の間でプレイヤーの攻撃ダメージを更新　<貞野>
+                    self.player_dmg = random.randint(400,1200) #400-1200の間で数値を更新 プレイヤーのステータスによって攻撃ダメージを変更する場合、書き換えてください <貞野>
+                    __class__.set_message(self,f"{self.player_dmg} damage!") #描画するメッセージを追加 <貞野>
+            if self.tmr == 16: #プレイヤーの行動終了
+                self.enemy_life -= self.player_dmg #プレイヤーの攻撃ダメージ分のエネミーの体力を減らす。
+                if self.enemy_life < 0:
+                    #エネミーの体力が0以下になった場合戦闘を終了する
+                    __class__.set_message(self,"You win!") #描画するメッセージを追加 <貞野>
+                    __class__.draw_battle(self,screen_obj) #戦闘画面の描画 <貞野>
+                    pg.display.update() #画面の更新 <貞野>
+                    time.sleep(1) #確認用の待機時間 <貞野>
+                    return 0 #迷路画面の描画を行うための数値を返す<貞野>
+
+                else:
+                    self.turn = 4 #エネミーの行動、エネミーの攻撃に変更
+                    self.tmr = 0 #時間経過をリセット <貞野>
+
+        elif self.turn == 4: # エネミーの行動、エネミーの攻撃 <貞野>
+            if self.tmr == 1: __class__.set_message(self,"Enemy turn.") #描画するメッセージを追加 <貞野>
+            if self.tmr == 5:
+                __class__.set_message(self,"Enemy attack!") #描画するメッセージを追加 <貞野>
+                self.enemy_step = 30 #エネミーの攻撃の際にエネミーの位置を変更するための移動数値 <貞野>
+            if self.tmr == 9:
+                #エネミーの攻撃ダメージの設定と背景画像を揺らす為の数値を更新し、エネミーの描画位置を戻す <貞野>
+                self.enemy_dmg = random.randint(900,1100) #900-1100の間でエネミーのの攻撃ダメージを更新　<貞野>
+                __class__.set_message(self,f"{self.enemy_dmg} damage!") #描画するメッセージを追加 <貞野>
+                self.dmg_effect = 5 #背景画像を揺らす為の変数を設定　<貞野>
+                self.enemy_step = 0 #エネミーの画像位置を戻す <貞野>
+            if self.tmr == 20: #エネミーの行動、エネミーの攻撃の終了 <貞野>
+                self.turn = 1 #プレイヤー入力待ちに変更 <貞野>
+                self.tmr = 0 #時間経過をリセット <貞野>
+        return 1 #戦闘画面の続行のため、戦闘画面の描画を行うための変数を返す <貞野>
+
+
+def play_game(maze, screen): #<児玉> <改訂 矢島> <追加　貞野>
+    mode = 0 #迷路画面の描画と戦闘画面の描画を切り替える変数 <貞野>
     # mount_mazeに現在のいるエリアを格納する <児玉>
     mount_maze = maze #引数の迷路を現在の迷路に設定 <矢島>
 
@@ -227,21 +369,29 @@ def play_game(maze, screen): #<児玉> <改訂 矢島>
     #ループ処理 <矢島>
     while True:
         pg.display.update() #画面の更新 <矢島>
-        mount_maze.show_maze(player,WINDOW_BLOCK,screen,enemies) #迷宮・敵の描画 <矢島>
-        player.blit(screen) #プレイヤーの描画 <矢島>
-        for event in pg.event.get(): #イベントの取得 <矢島>
-            if event.type == pg.QUIT: #ウィンドウの×ボタンが押されたら <矢島>
-                pg.quit() #pygemeの終了 <児玉>
-                sys.exit() #プログラムの終了 <児玉>
-            if event.type == pg.KEYDOWN: #キーが押されたら <矢島>
-                pos = player.update_xy(mount_maze, screen, enemies, WINDOW_BLOCK) #プレイヤー・敵の座標の更新<矢島>
-                if pos == "goal": return # ゴールしていれば → メインフロアならmain()に戻る、地下フロアなら一つ上のplay_game()に戻る <児玉>
-                if isinstance(pos, Maze): # 穴を踏んでいれば <児玉>
-                    maze=pos #生成した迷宮を受け取る<矢島>
-                    play_game(maze, screen) # 生成した地下のマップを引数に与えながら、play_gameを再帰呼び出しする <児玉> <改訂 矢島>
-        if player.colliderect(enemies,screen): #敵とプレイヤーが衝突していれば <矢島>
-            pg.quit() #pygemeの終了 <児玉>
-            sys.exit() #プログラムの終了 <児玉>
+        if mode == 0: #迷路画面 <貞野>
+            mount_maze.show_maze(player,WINDOW_BLOCK,screen,enemies) #迷宮・敵の描画 <矢島>
+            player.blit(screen) #プレイヤーの描画 <矢島>
+            for event in pg.event.get(): #イベントの取得 <矢島>
+                if event.type == pg.QUIT: #ウィンドウの×ボタンが押されたら <矢島>
+                    pg.quit() #pygemeの終了 <児玉>
+                    sys.exit() #プログラムの終了 <児玉>
+                if event.type == pg.KEYDOWN: #キーが押されたら <矢島>
+                    pos = player.update_xy(mount_maze, screen, enemies, WINDOW_BLOCK) #プレイヤー・敵の座標の更新<矢島>
+                    if pos == "goal": return # ゴールしていれば → メインフロアならmain()に戻る、地下フロアなら一つ上のplay_game()に戻る <児玉>
+                    if isinstance(pos, Maze): # 穴を踏んでいれば <児玉>
+                        maze=pos #生成した迷宮を受け取る<矢島>
+                        play_game(maze, screen) # 生成した地下のマップを引数に与えながら、play_gameを再帰呼び出しする <児玉> <改訂 矢島>
+            if player.colliderect(enemies,screen): #敵とプレイヤーが衝突していれば <矢島>
+                battle = Battle() #敵と衝突した際にバトル画面のクラスを作成 <貞野>
+                mode = 1 #戦闘画面を描画させるためモードを変更 <貞野>
+
+        if mode ==1: #戦闘画面 <貞野>
+            for event in pg.event.get(): #イベントの取得 <貞野>
+                if event.type == pg.QUIT: #ウィンドウの×ボタンが押されたら <貞野>
+                    pg.quit() #pygemeの終了 <貞野>
+                    sys.exit() #プログラムの終了 <貞野>
+            mode = battle.battle(screen) #Battleクラスのbattleメソッドで戦闘が続く場合は1を、戦闘が終了する場合は0を返す <貞野>
 
 
 def main(): #メイン関数 <矢島> <改訂 児玉>
