@@ -1,5 +1,6 @@
 import random
 
+
 def make_maze(yoko, tate):
     XP = [ 0, 1, 0, -1]
     YP = [-1, 0, 1,  0]
@@ -18,11 +19,40 @@ def make_maze(yoko, tate):
             maze_lst[x+YP[rnd]][y+XP[rnd]] = 1
     return maze_lst
 
+
+# ダンジョンを生成する関数 <山本>
+def create_dungeon(yoko, tate): 
+    """迷路を基に小部屋有りダンジョンを生成する関数"""
+    maze_lst = make_maze(yoko, tate) #基となる迷路を生成 <山本>
+    dungeon = [[1 for i in range(tate*3)] for j in range(yoko*3)] #迷路の縦横3倍の大きさのダンジョン用リスト <山本>
+
+    for y in range(1, yoko-1):
+        for x in range(1, tate-1):
+            dx, dy = x*3+1, y*3+1 # ダンジョンリスト用の移動距離 <山本>
+            if maze_lst[y][x] == 0: # もし迷路が道ならば <山本>
+                if random.randint(0, 99) < 20: #20％の確率で部屋を生成する <山本>
+                    for ry in range(-1, 2):
+                        for rx in range(-1, 2):
+                            dungeon[dy+ry][dx+rx] = 0 #周囲の3マスを道にする <山本>
+                else: # 部屋が生成されなかったとき通路を作る <山本>
+                    dungeon[dy][dx] = 0
+                    if maze_lst[y-1][x] == 0: #上方向に道が続いていたらダンジョンリスト内でも上方向に道を伸ばす <山本>
+                        dungeon[dy-1][dx] = 0
+                    if maze_lst[y+1][x] == 0: #下方向に道が続いていたら <山本>
+                        dungeon[dy+1][dx] = 0
+                    if maze_lst[y][x-1] == 0: #左方向に道が続いていたら <山本>
+                        dungeon[dy][dx-1] = 0
+                    if maze_lst[y][x+1] == 0: #右方向に道が続いていたら <山本>
+                        dungeon[dy][dx+1] = 0        
+    return dungeon
+
+
 def show_maze(canvas, maze_lst):
     color = ["white", "gray"]
     for x in range(len(maze_lst)):
         for y in range(len(maze_lst[x])):
             canvas.create_rectangle(x*100, y*100, x*100+100, y*100+100, fill=color[maze_lst[x][y]])
+
 
 #2次元リストを渡すとCUIで迷路を表示
 def print_maze(maze_lst):
@@ -36,7 +66,13 @@ def print_maze(maze_lst):
             print(j,end="")
         print()
 
+
 #maze_makerテスト用
 if __name__ == "__main__":
     maze = make_maze(15,9)
     print_maze(maze)
+
+    print()
+
+    dmaze = create_dungeon(15, 6)
+    print_maze(dmaze)

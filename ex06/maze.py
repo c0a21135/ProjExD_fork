@@ -5,7 +5,7 @@ import time
 import pygame as pg
 
 #ローカルモジュールのimport
-from maze_maker import make_maze
+from maze_maker import create_dungeon
 
 
 #定数の設定
@@ -15,7 +15,7 @@ MAZE_X, MAZE_Y = 50, 50 #迷宮のマスの数 <矢島>
 WINDOW_BLOCK = 60 #1マスの大きさ <矢島>
 NUM_ENEMY = 50 #敵の数 <矢島>
 MAIN_FLOOR_LEN = 3 # フロアの数（階層数） <児玉>
-HOOL_NUM= 100 # 穴の数 <児玉>
+HOOL_NUM = 100 # 穴の数 <児玉>
 COMMAND = ["[A]ttack", "[I]tems", "[M]agic", "[R]un"] #Playerのコマンドのリスト <貞野>
 
 class Screen: # スクリーン <矢島>
@@ -29,7 +29,7 @@ class Screen: # スクリーン <矢島>
 class Maze:#迷宮 <矢島> <改訂 児玉>
 
     def __init__(self, yoko, tate, block, floor):
-        self.maze_map=make_maze(yoko, tate) #迷宮のリストの作成(0=道, 1=壁) <矢島>
+        self.maze_map=create_dungeon(yoko, tate) #迷宮のリストの作成(0=道, 1=壁) <矢島>
         for x, ele_list in enumerate(self.maze_map):
             for y, ele_num in enumerate(ele_list):
                 if ele_num == 1: #要素が1であったら <矢島>
@@ -133,7 +133,7 @@ class Player: #プレイヤー <矢島> <改訂 児玉>
                  pg.K_RIGHT:[1, 0]} #押下キーに対する座標遷移のdict <矢島>
 
     def __init__(self,block,screen_obj):
-        self.x , self.y = 1, 1 #迷宮の左上にプレイヤーを配置 <矢島>
+        self.x , self.y = 4, 4 #迷宮の左上にプレイヤーを配置 <矢島>
         self.block = block #1マスの大きさ <矢島>
         self.sfc = pg.Surface((block, block)) # 1マス分の大きさのSurfaceオブジェクトを作成 <矢島>
         pg.draw.circle(self.sfc, (0, 0, 255), (block/2, block/2), block/2) #Surfaceオブジェクトに青色の丸を表示 <矢島>
