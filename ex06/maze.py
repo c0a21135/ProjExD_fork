@@ -23,7 +23,10 @@ mode = 7 #迷路画面の描画と戦闘画面の描画を切り替える変数 
 floor = 0 #現在の階層を保持する変数 <山本>
 mount = "main" #メインエリアかサブエリアかを判別する変数 <山本>
 
-PlayerImg = pg.image.load("fig/0.png") #プレイヤー画像の指定 <山本>
+PlayerImg = [pg.image.load("fig/mukimuki_down.png"), #プレイヤー画像の指定 <山本>
+             pg.image.load("fig/mukimuki_left.png"),
+             pg.image.load("fig/mukimuki_right.png"),
+             pg.image.load("fig/mukimuki_up.png")]
 EnemyImg = [pg.image.load("fig/1.png"), #ダンジョン内敵画像の指定 <山本>
             pg.image.load("fig/2.png"),
             pg.image.load("fig/3.png"),
@@ -146,15 +149,16 @@ class Hole(Goal): #落とし穴
 
 class Player: #プレイヤー <矢島> <改訂 児玉> <改訂 山本>
 
-    key_delta = {pg.K_UP:[0, -1],
-                 pg.K_DOWN:[0, 1],
-                 pg.K_LEFT:[-1, 0],
-                 pg.K_RIGHT:[1, 0]} #押下キーに対する座標遷移のdict <矢島>
+    key_delta = {pg.K_UP:[0, -1,3],
+                 pg.K_DOWN:[0, 1, 0],
+                 pg.K_LEFT:[-1, 0, 1],
+                 pg.K_RIGHT:[1, 0, 2]} #押下キーに対する座標遷移のdict <矢島>
     x, y = 4, 4 #迷宮の左上にプレイヤーを配置 <矢島> <改定 山本>
 
     def __init__(self,block,screen_obj,Img):
         self.block = block #1マスの大きさ <矢島>
-        self.sfc = Img #画像を描画したsurfaceクラスを受け取る <山本>
+        self.img = Img
+        self.sfc = self.img[0] #画像を描画したsurfaceクラスを受け取る <山本>
         self.sfc = pg.transform.scale(self.sfc, (block, block)) #画像の大きさを整える <山本>
         self.rct = self.sfc.get_rect() #rectオブジェクトの取得 <矢島>
         self.rct.center = block/2+block*(screen_obj.rct.right/block//2), block/2+block*(screen_obj.rct.bottom/block//2) #画面の真ん中にプレイヤーを設置 <矢島>
@@ -187,6 +191,12 @@ class Player: #プレイヤー <矢島> <改訂 児玉> <改訂 山本>
             if pressed[delta]:
                 x += __class__.key_delta[delta][0]
                 y += __class__.key_delta[delta][1]#押下キーに対応して座標を変更 <矢島>
+                self.sfc = self.img[__class__.key_delta[delta][2]] #画像を描画したsurfaceクラスを受け取る <山本>
+                self.sfc = pg.transform.scale(self.sfc, (block, block)) #画像の大きさを整える <山本>
+                self.rct = self.sfc.get_rect() #rectオブジェクトの取得 <矢島>
+                self.rct.center = block/2+block*(screen_obj.rct.right/block//2), block/2+block*(screen_obj.rct.bottom/block//2) #画面の真ん中にプレイヤーを設置 <矢島>
+            
+                
         
         # 移動先による条件分岐
         if isinstance(maze_obj.maze_map[x][y], Hole):# 移動先のマスがゴールだったら  <児玉>
